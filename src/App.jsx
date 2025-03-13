@@ -23,7 +23,7 @@ function derivedActivePlayer(gameTurn) {
 function App() {
   const [gameTurn, setGameTurn] = useState([]);
 
-  let gameBoard = initialGameBoard;
+  let gameBoard = [...initialGameBoard.map(array => [...array])];
 
   for (const turn of gameTurn) {
     let { square, player } = turn;
@@ -45,7 +45,6 @@ function App() {
       winner = firstCombination; // Store the winning player ('X' or 'O')
       break;
     }
-
   }
 
   const handleActivePlayer = (rowIndex, colIndex) => {
@@ -59,6 +58,11 @@ function App() {
     });
   }
 
+  const handleReset = () => {
+    setGameTurn([]);
+    console.log('reset');
+  }
+
   return (
     <main>
       <div id="game-container" >
@@ -66,7 +70,7 @@ function App() {
           <Player name="player 1" symbol={"X"} isActive={activePlayer === 'X'} />
           <Player name="player 2" symbol={"O"} isActive={activePlayer === 'O'} />
         </ol>
-        {(winner || gameDraw) && <GameOver winner={winner} />}
+        {(winner || gameDraw) && <GameOver winner={winner} onReset={handleReset} />}
         <GameBoard changeActivePlayer={handleActivePlayer} board={gameBoard} />
       </div>
       <Log turns={gameTurn} />
