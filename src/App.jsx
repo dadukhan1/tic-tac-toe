@@ -5,11 +5,17 @@ import Log from "./components/Log.jsx";
 import { WINNING_COMBINATIONS } from './winningCombination.js';
 import GameOver from "./components/GameOver.jsx";
 
-const initialGameBoard = [
+const PLAYERS = {
+  X: 'Player 1',
+  O: 'Player 2'
+};
+
+const INITIAL_GAME_BOARD = [
   [null, null, null],
   [null, null, null],
   [null, null, null]
 ];
+
 
 function derivedActivePlayer(gameTurn) {
   let currentPlayer = 'X';
@@ -20,32 +26,43 @@ function derivedActivePlayer(gameTurn) {
   return currentPlayer;
 }
 
-function App() {
-  const [gameTurn, setGameTurn] = useState([]);
 
-  let gameBoard = [...initialGameBoard.map(array => [...array])];
+
+const derivedGameBoard = (gameTurn) => {
+  let gameBoard = [...INITIAL_GAME_BOARD.map(array => [...array])];
 
   for (const turn of gameTurn) {
     let { square, player } = turn;
     let { row, col } = square;
     gameBoard[row][col] = player;
   }
-  let activePlayer = derivedActivePlayer(gameTurn);
+  return gameBoard;
+}
+
+const derivedWinner = (gameBoard, playerName) => {
   let winner = false;
 
-  let gameDraw = gameTurn.length === 9 && !winner;
-
-
   for (let combination of WINNING_COMBINATIONS) {
-
     const firstCombination = gameBoard[combination[0].row][combination[0].column];
     const secondCombination = gameBoard[combination[1].row][combination[1].column];
     const thirdCombination = gameBoard[combination[2].row][combination[2].column];
+
     if (firstCombination !== null && firstCombination === secondCombination && firstCombination === thirdCombination) {
-      winner = firstCombination; // Store the winning player ('X' or 'O')
-      break;
+      winner = playerName[firstCombination]; // Store the winning player ('X' or 'O')
     }
   }
+  return winner;
+}
+
+function App() {
+  const [playerName, setPlayerName] = useState(PLAYERS)
+  const [gameTurn, setGameTurn] = useState([]);
+
+  const gameBoard = derivedGameBoard(gameTurn);
+  const winner = derivedWinner(gameBoard, playerName);
+
+  let activePlayer = derivedActivePlayer(gameTurn);
+  let gameDraw = gameTurn.length === 9 && !winner;
 
   const handleActivePlayer = (rowIndex, colIndex) => {
     setGameTurn((prevTurn) => {
@@ -60,15 +77,23 @@ function App() {
 
   const handleReset = () => {
     setGameTurn([]);
-    console.log('reset');
+  }
+
+  const handlePlayerNameChange = (symbol, newName) => {
+    setPlayerName(prevName => {
+      return {
+        ...prevName,
+        [symbol]: newName
+      }
+    })
   }
 
   return (
     <main>
       <div id="game-container" >
         <ol id="players" className="highlight-player">
-          <Player name="player 1" symbol={"X"} isActive={activePlayer === 'X'} />
-          <Player name="player 2" symbol={"O"} isActive={activePlayer === 'O'} />
+          <Player name={playerName.X} symbol={"X"} isActive={activePlayer === 'X'} playerNameChange={handlePlayerNameChange} />
+          <Player name={playerName.O} symbol={"O"} isActive={activePlayer === 'O'} playerNameChange={handlePlayerNameChange} />
         </ol>
         {(winner || gameDraw) && <GameOver winner={winner} onReset={handleReset} />}
         <GameBoard changeActivePlayer={handleActivePlayer} board={gameBoard} />
